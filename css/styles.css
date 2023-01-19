@@ -1,6 +1,6 @@
 :root {
   --actual-height: 100vh;
-  --header-height: 3.5rem;
+  --header-height: 3rem;
   --nes-pixel-size: 1px;
   --game-screen-height: 300px;
   --sprite-height: calc(var(--nes-pixel-size) * 28);
@@ -30,51 +30,124 @@ header {
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: bold;
 }
 
 main {
-  
-}
-
-.screen-background {
-  position: fixed;
-  top: var(--header-height);
-  width: 200vw;
-  background-repeat: no-repeat;
-  background-position: center;
-  width: 100%;
+  width: 100vw;
   height: var(--game-screen-height);
 }
 
-#instructions-screen {
-  background-image: url("../media/images/instructions.png");
+#intro-area {
+  position: absolute;
+  width: 100%;
+  top: var(--header-height); 
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.3s ease-in-out;
 }
 
-#battle-bg {
-  background-image: url("../media/images/background.png");
-  background-size: cover;
+body.playing #intro-area {
+  opacity: 0;
+  pointer-events: none;
 }
+
+#start-button, #a-button {
+  font-size: calc(var(--nes-pixel-size) * 16);
+  font-weight: bold;
+  padding: calc(var(--nes-pixel-size) * 9) calc(var(--nes-pixel-size) * 24);
+  border-radius: calc(var(--nes-pixel-size) * 4);
+  margin-top: calc(var(--nes-pixel-size) * 12);
+  background-color: #00000055;
+  color: #ffffff99;
+}
+#a-button {
+  top: calc(var(--game-screen-height) + (var(--nes-pixel-size) * 32));
+  width: calc(var(--nes-pixel-size) * 80);
+  height: calc(var(--nes-pixel-size) * 80);
+  padding: 0;
+  font-size: calc(var(--nes-pixel-size) * 45);
+  border-radius: 50%;
+  margin: 0;
+  background-color: red;
+  color: #ffffffaa;
+  align-self: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease-in-out;
+}
+
+body.playing #a-button {
+  opacity: 1;
+  pointer-events: all;
+}
+
+#instructions-screen {
+  width: 100%;
+  height: var(--game-screen-height);
+  background-image: url("../media/images/instructions.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
 
 #battle-area {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: orange;
+  height: var(--game-screen-height);
+  background-image: url("../media/images/background.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position-x: right;
+  transition: background-position-x 1s ease-in-out;
+}
 
+body.playing #battle-area {
+  background-position-x: calc(var(--nes-pixel-size) * -190);
 }
 
 .sprite {
-  position: relative;
+  position: absolute;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
+  width: var(--sprite-height);
   height: var(--sprite-height);
 }
 
+#kirby, #attacker {
+  top: calc(var(--nes-pixel-size) * 75);
+  opacity: 0;
+  transition: opacity 300ms ease-in-out;
+}
+
 #kirby {
+  left: calc(var(--nes-pixel-size) * 65);
   background-image: url("../media/images/kirbywaiting.png");
 }
 
 #attacker {
+  right: calc(var(--nes-pixel-size) * 28);
   background-image: url("../media/images/waddledeewaiting.png");
+}
+
+
+#kirby.visible, #attacker.visible {
+  opacity: 1;
+}
+
+#control-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: calc(var(--nes-pixel-size) * 24);
 }
 
 .hidden {
