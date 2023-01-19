@@ -1,0 +1,74 @@
+:root {
+  --game-screen-height: 300px;
+}
+
+body {
+  margin: 0;
+  background-color: #222;
+  color: #ccc;
+  box-sizing: border-box;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+* {
+  image-rendering: pixelated;
+}
+
+header {
+  width: 100vw;
+  height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #00000077;
+  color: #aaa;
+}
+
+h1 {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+main {
+  
+}
+
+.screen-background {
+  background-repeat: no-repeat;
+  background-position: center;
+  width: 100%;
+  height: var(--game-screen-height);
+}
+
+#instructions-screen {
+  background-image: url("../media/images/instructions.png");
+}
+
+#battle-area {
+  width: 100%;
+  height: var(--game-screen-height);
+  background-image: url("../media/images/background.png");
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  height: var(--game-screen-height);
+}
+
+.sprite {
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  height: 4rem;
+}
+
+#kirby {
+  background-image: url("../media/images/kirbywaiting.png");
+}
+
+#attacker {
+  background-image: url("../media/images/waddledeewaiting.png");
+}
+
+.hidden {
+  display: none !important;
+}
