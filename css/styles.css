@@ -1,5 +1,10 @@
 :root {
+  --actual-height: 100vh;
+  --header-height: 3.5rem;
+  --nes-pixel-size: 1px;
   --game-screen-height: 300px;
+  --sprite-height: calc(var(--nes-pixel-size) * 28);
+
 }
 
 body {
@@ -16,7 +21,7 @@ body {
 
 header {
   width: 100vw;
-  height: 3.5rem;
+  height: var(--header-height);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -34,6 +39,9 @@ main {
 }
 
 .screen-background {
+  position: fixed;
+  top: var(--header-height);
+  width: 200vw;
   background-repeat: no-repeat;
   background-position: center;
   width: 100%;
@@ -44,21 +52,21 @@ main {
   background-image: url("../media/images/instructions.png");
 }
 
-#battle-area {
-  width: 100%;
-  height: var(--game-screen-height);
+#battle-bg {
   background-image: url("../media/images/background.png");
-  background-repeat: no-repeat;
-  background-position: center;
   background-size: cover;
-  height: var(--game-screen-height);
+}
+
+#battle-area {
+
 }
 
 .sprite {
+  position: relative;
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-  height: 4rem;
+  height: var(--sprite-height);
 }
 
 #kirby {
@@ -71,4 +79,13 @@ main {
 
 .hidden {
   display: none !important;
+}
+
+@keyframes pan-left {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
 }
