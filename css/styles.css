@@ -56,6 +56,25 @@ body.playing #intro-area {
   pointer-events: none;
 }
 
+#game-message {
+  position: absolute;
+  top: calc(var(--nes-pixel-size) * 48);
+  transform-origin: center;
+  left: 50vw;
+  transform: translateX(-50%);
+  font-size: calc(var(--nes-pixel-size) * 30);
+  font-weight: bold;
+  text-shadow: 0 0 0.5rem black;
+}
+
+#game-message.fire {
+  color: rgb(188, 0, 0);
+}
+
+#game-message.foul {
+  color: rgb(192, 192, 0);
+}
+
 #start-button, #a-button {
   font-size: calc(var(--nes-pixel-size) * 16);
   font-weight: bold;

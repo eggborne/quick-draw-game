@@ -1,3 +1,7 @@
+const roundStatus = {
+  drawStarted: false
+}
+
 window.addEventListener('load', () => {
   document.documentElement.style.setProperty('--actual-height', window.innerHeight + 'px');
   let pixelWidth = 170;
@@ -16,17 +20,32 @@ window.addEventListener('load', () => {
 });
 
 async function handleStartClick(e) {
-  console.log('clicked start');
   document.body.classList.add('playing');
-  console.log('about to puase')
   await pause(1000);
-  console.log('ended payse')
+  revealFighters();
+  startRound(1000);
+}
+
+function handleAClick(e) {
+  if (!roundStatus.drawStarted) {
+    document.getElementById('game-message').innerText = 'FOUL!';
+    document.getElementById('game-message').classList = ['foul'];
+
+  }
+}
+
+function revealFighters() {
   document.getElementById('kirby').classList.add('visible');
   document.getElementById('attacker').classList.add('visible');
 }
 
-function handleAClick(e) {
-  console.log('clicked A');
+async function startRound(attackDelay) {
+  let currentAttacker = attackers[levelRea]
+  await pause(attackDelay);
+  document.getElementById('game-message').innerText = 'FIRE!';
+  document.getElementById('game-message').classList = ['fire'];
+  await pause()
+  roundStatus.drawStarted = true;
 }
 
 const pause = async (ms) => {
