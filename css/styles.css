@@ -56,9 +56,15 @@ body.playing #intro-area {
   pointer-events: none;
 }
 
+#time-display {
+  top: calc(var(--game-screen-height) + (var(--nes-pixel-size) * 24));
+  left: 300px;
+  font-size: calc(var(--nes-pixel-size) * 20);
+}
+
 #game-message {
   position: absolute;
-  top: calc(var(--nes-pixel-size) * 48);
+  top: calc(var(--nes-pixel-size) * 30);
   transform-origin: center;
   left: 50vw;
   transform: translateX(-50%);
@@ -73,6 +79,14 @@ body.playing #intro-area {
 
 #game-message.foul {
   color: rgb(192, 192, 0);
+}
+
+#game-message.win {
+  color: rgb(30, 152, 0);
+}
+
+#game-message.lose {
+  color: rgb(114, 0, 123);
 }
 
 #start-button, #a-button {
@@ -144,7 +158,7 @@ body.playing #battle-area {
 #kirby, #attacker {
   top: calc(var(--nes-pixel-size) * 75);
   opacity: 0;
-  transition: opacity 300ms ease-in-out;
+  transition: opacity 300ms ease-in-out, transform 200ms ease;
 }
 
 #kirby {
@@ -157,6 +171,12 @@ body.playing #battle-area {
   background-image: url("../media/images/waddledeewaiting.png");
 }
 
+#kirby.defeated {
+  transform: rotate(-90deg);
+}
+#attacker.defeated {
+  transform: rotate(90deg);
+}
 
 #kirby.visible, #attacker.visible {
   opacity: 1;
@@ -166,7 +186,8 @@ body.playing #battle-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: calc(var(--nes-pixel-size) * 24);
+  height: calc(var(--actual-height) - var(--header-height) - var(--game-screen-height));
+  gap: calc(var(--nes-pixel-size) * 20);
 }
 
 .hidden {

@@ -1,12 +1,19 @@
 const roundStatus = {
-  drawStarted: false
+  drawStarted: false,
+  attackerFired: false,
+  fouled: false,
+  won: false,
+  startedAt: 0,
+  playerSpeed: 0,
 }
+
+let pixelSize;
 
 window.addEventListener('load', () => {
   document.documentElement.style.setProperty('--actual-height', window.innerHeight + 'px');
   let pixelWidth = 170;
   let pixelHeight = 150;
-  let pixelSize = (window.innerWidth / pixelWidth);
+  pixelSize = (window.innerWidth / pixelWidth);
   let gameScreenHeight = Math.round(pixelSize * pixelHeight);
   console.warn('pixelSize:', pixelSize);
   console.warn('gameScreenHeight = ' + gameScreenHeight);
@@ -21,16 +28,27 @@ window.addEventListener('load', () => {
 
 async function handleStartClick(e) {
   document.body.classList.add('playing');
-  await pause(1000);
+  await pause(1000); // wait for pan
   revealFighters();
-  startRound(1000);
+  await pause(randomInt(1000, 2000));
+  await startRound(500);
 }
 
 function handleAClick(e) {
   if (!roundStatus.drawStarted) {
     document.getElementById('game-message').innerText = 'FOUL!';
     document.getElementById('game-message').classList = ['foul'];
-
+    roundStatus.fouled = true;
+  } else if (!roundStatus.attackerFired) {
+    document.getElementById('game-message').innerText = 'WIN!';
+    document.getElementById('game-message').classList = ['win'];
+    document.getElementById('kirby').style.backgroundImage = `url("media/images/kirbyfiring.png")`;
+    document.getElementById('attacker').classList.add('defeated');
+    roundStatus.won = true;
+  }
+  if (roundStatus.won) {
+    let reactionTime = Date.now() - roundStatus.startedAt;
+    document.getElementById('time-display').innerText = reactionTime + 'ms';
   }
 }
 
@@ -40,16 +58,27 @@ function revealFighters() {
 }
 
 async function startRound(attackDelay) {
-  let currentAttacker = attackers[levelRea]
-  await pause(attackDelay);
+  roundStatus.startedAt = Date.now();
   document.getElementById('game-message').innerText = 'FIRE!';
   document.getElementById('game-message').classList = ['fire'];
-  await pause()
+  document.getElementById('attacker').style.backgroundImage = `url("media/images/waddledeefiring1.png")`;
   roundStatus.drawStarted = true;
+  await pause(attackDelay);
+  if (!roundStatus.won && !roundStatus.fouled) {
+    document.getElementById('game-message').innerText = 'LOSE';
+    document.getElementById('game-message').classList = ['lose'];
+    document.getElementById('attacker').style.backgroundImage = `url("media/images/waddledeefiring2.png")`;
+    document.getElementById('kirby').classList.add('defeated');
+    roundStatus.attackerFired = true;
+  }
 }
 
 const pause = async (ms) => {
   return new Promise(resolve => {
     setTimeout(resolve, ms)
   })
+}
+
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
 }
