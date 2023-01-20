@@ -12,7 +12,7 @@ body {
   background-color: #222;
   color: #ccc;
   box-sizing: border-box;
-  font-family: Verdana, Geneva, Tahoma, sans-serif;
+  font-family: Verdana, Tahoma, sans-serif;
 }
 
 * {
@@ -56,6 +56,75 @@ body.playing #intro-area {
   pointer-events: none;
 }
 
+#time-display {
+  top: calc(var(--game-screen-height) + (var(--nes-pixel-size) * 24));
+  font-size: calc(var(--nes-pixel-size) * 12);
+  min-height: calc(var(--nes-pixel-size) * 28);
+}
+
+#game-message, #bonus-message, #bonus-message::after {
+  position: absolute;
+  top: calc(var(--nes-pixel-size) * 30);
+  width: calc(var(--nes-pixel-size) * 78);
+  height: calc(var(--nes-pixel-size) * 30);
+  background-size: cover;
+  transform-origin: center;
+  left: 50vw;
+  transform: translateX(-50%);
+}
+
+#bonus-message, #bonus-message::after {
+  top: calc(var(--nes-pixel-size) * 40);
+  width: calc(var(--nes-pixel-size) * 80);
+  height: calc(var(--nes-pixel-size) * 20);
+}
+
+#bonus-message::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: calc(var(--nes-pixel-size) * 30);
+  height: calc(var(--nes-pixel-size) * 24);
+  transform: translate(-50%, 100%);
+}
+
+#bonus-scrore {
+  background-image: url("../media/images/1000.png");
+}
+
+#bonus-message.rank-1::after {
+  background-image: url("../media/images/3000.png");
+}
+
+#bonus-message.rank-2::after {
+  background-image: url("../media/images/5000.png");
+}
+
+#bonus-message.rank-3::after {
+  content: '5000';
+}
+
+#bonus-message.no-bonus {
+  top: calc(var(--nes-pixel-size) * 40);
+}
+
+#game-message.fire {
+  color: rgb(188, 0, 0);
+}
+
+#game-message.foul {
+  color: rgb(192, 192, 0);
+}
+
+#game-message.win {
+  color: rgb(30, 152, 0);
+}
+
+#game-message.lose {
+  color: rgb(114, 0, 123);
+}
+
 #start-button, #a-button {
   font-size: calc(var(--nes-pixel-size) * 16);
   font-weight: bold;
@@ -73,12 +142,16 @@ body.playing #intro-area {
   font-size: calc(var(--nes-pixel-size) * 45);
   border-radius: 50%;
   margin: 0;
-  background-color: red;
+  background-color: rgb(202, 37, 37);
   color: #ffffffaa;
   align-self: center;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease-in-out;
+}
+
+#a-button.dimmed {
+  background-color: rgb(179, 0, 0);
 }
 
 body.playing #a-button {
@@ -106,9 +179,12 @@ body.playing #a-button {
   background-size: cover;
   background-repeat: no-repeat;
   background-position-x: right;
-  transition: background-position-x 1s ease-in-out;
+  transition: background-position-x 1s ease-in-out, opacity 500ms ease-in-out;
 }
 
+#battle-area.dimmed {
+
+}
 body.playing #battle-area {
   background-position-x: calc(var(--nes-pixel-size) * -190);
 }
@@ -125,7 +201,7 @@ body.playing #battle-area {
 #kirby, #attacker {
   top: calc(var(--nes-pixel-size) * 75);
   opacity: 0;
-  transition: opacity 300ms ease-in-out;
+  transition: opacity 300ms ease-in-out, transform 200ms ease;
 }
 
 #kirby {
@@ -138,6 +214,12 @@ body.playing #battle-area {
   background-image: url("../media/images/waddledeewaiting.png");
 }
 
+#kirby.defeated {
+  transform: rotate(-90deg);
+}
+#attacker.defeated {
+  transform: rotate(90deg);
+}
 
 #kirby.visible, #attacker.visible {
   opacity: 1;
@@ -147,7 +229,8 @@ body.playing #battle-area {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding-top: calc(var(--nes-pixel-size) * 24);
+  height: calc(var(--actual-height) - var(--header-height) - var(--game-screen-height));
+  gap: calc(var(--nes-pixel-size) * 20);
 }
 
 .hidden {
