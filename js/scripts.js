@@ -19,10 +19,11 @@ const spriteSheetData = {
     frames: [
       'waiting',
       'drawing',
+      'disappointed',
       'dead1',
       'dead2',
       'dead3',
-      'disappointed',
+      'dead4',
     ],
   },
   waddledee: {
@@ -86,16 +87,14 @@ function setDimensions() {
 
 async function handleStartClick() {
   document.body.classList.add('playing');
+  document.body.classList.add('hide-intro');
   initiateRound(levelReached);
 }
 
 async function initiateRound(level) {
   loadAttacker(attackers[level]);
   await pause(options.introPanSpeed);
-  document.getElementById('kirby').classList.add('visible');
-  document.getElementById('attacker').classList.add('visible');
-  document.getElementById('kirby-hat').style.opacity = 1;
-  document.getElementById('attacker-hat').style.opacity = 1;
+  revealFighters();
   let suspenseTime = randomInt(attackers[level].suspenseTime.min, attackers[level].suspenseTime.max);
   await pause(suspenseTime);
   if (!roundStatus.fouled) {
@@ -103,13 +102,18 @@ async function initiateRound(level) {
   }  
 }
 
+function revealFighters(hide) {
+  document.getElementById('kirby').classList[hide ? 'remove' : 'add']('visible');
+  document.getElementById('attacker').classList[hide ? 'remove' : 'add']('visible');
+  document.getElementById('kirby-hat').style.opacity = hide ? 0 : 1;
+  document.getElementById('attacker-hat').style.opacity = hide ? 0 : 1;
+}
+
 async function endRound() {
-  document.getElementById('kirby').classList.remove('visible');
-  document.getElementById('attacker').classList.remove('visible');
-  await pause(1000);
+  revealFighters(true);
+  document.body.classList.remove('playing');
+  await pause(300);
   document.getElementById('battle-area').classList.add('dimmed');
-  await pause(500);
-  document.getElementById('battle-area').classList.remove('dimmed');
 }
 
 function handleAClick(e) {
@@ -139,28 +143,17 @@ async function defeatAttacker() {
   console.warn('bonus', bonus);
   roundStatus.bonusRank = bonus.rank;
   player.score += bonus.points;
-  await pause(300);
+  await pause(1000);
   if (bonus.rank) {
     changeBonusMessage('bonus');
   } else {
     changeBonusMessage('nobonus');
   }
-  await pause(500);
-  changeFrame('kirby', 'waiting');
-  changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
-  document.querySelector('#kirby > .gun').classList.remove('drawn');
-  await pause(200);
-  changeFrame('kirby', 'drawing');
-  changeBG('#kirby + .hat', 'media/images/kirbyhat2.png');
-  document.querySelector('#kirby > .gun').classList.add('spinning');
-  changeBG('#kirby > .gun', 'media/images/spinninggun.png');
-  let spinTime = randomInt(500, 2000);
-  document.querySelector('#kirby > .gun').style.animationDuration = spinTime + 'ms';
-  await pause(spinTime);
-  document.querySelector('#kirby > .gun').classList.remove('spinning');
-  document.querySelector('#kirby > .gun').classList.remove('drawn');
-  changeFrame('kirby', 'waiting');
-  changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
+  await pause(600);
+  await spinGun(randomInt(500, 2000));
+  await pause(1200);
+  changeBonusMessage();
+  await endRound();
 }
 
 function changeBG(query, imagePath) {
@@ -222,6 +215,10 @@ function changeBonusMessage(newMessage) {
   }
 }
 
+function displayNumber(num) {
+  let sheet;
+}
+
 function loadAttacker(attacker) {
   console.log('loading', attacker.name);
   let attackerElement = document.getElementById('attacker');
@@ -235,7 +232,7 @@ function loadAttacker(attacker) {
   attackerElement.style.width = actualSize.width + 'px';
   attackerElement.style.height = actualSize.height + 'px';
   document.getElementById('attacker-hat').style.width = actualSize.width + 'px';
-  document.getElementById('attacker-hat').style.height = actualSize.height/2 + 'px';
+  document.getElementById('attacker-hat').style.height = actualSize.height/2 + 'px'; // hat.png should be 16x16
 }
 
 async function callToFire() {
@@ -251,11 +248,58 @@ async function callToFire() {
   roundStatus.drawStarted = true;
   await pause(attackDelay);
   if (!roundStatus.won && !roundStatus.fouled) {
+    roundStatus.attackerFired = true;
     document.querySelector('#attacker > .gun').classList.add('drawn');
     document.getElementById('kirby').classList.add('defeated');
     document.querySelector('#kirby + .hat').classList.add('defeated');
-    roundStatus.attackerFired = true;
+    await animateFrameSequence('kirby', 'dead', [
+      {frame: 1, duration: 225},
+      {frame: 2, duration: 225},
+      {frame: 3, duration: 150},
+      {frame: 4, duration: 225},
+      {frame: 3, duration: 150},
+    ]);
   }
+}
+
+async function animateFrameSequence(elementID, prefix, sequence) {
+  console.log('type:', typeof sequence)
+  if (typeof sequence == 'number') {
+    for (let i = 1; i <= sequence; i++) {
+      changeFrame('kirby', `${prefix}${i}`);
+      console.log('changing to', `${prefix}${i}`)
+      await pause(200);
+    }
+  } else {
+    // for (let i = 0; i < sequence.length-1; i++) {
+    //   let frameIndex = sequence[i];
+    //   changeFrame('kirby', `${prefix}${frameIndex}`);
+    //   console.log('changing to', `${prefix}${frameIndex}`)
+    //   await pause(200);
+    // };
+    for (let step in sequence) {
+      let frameIndex = sequence[step].frame;
+      let frameDuration = sequence[step].duration;
+      changeFrame(elementID, `${prefix}${frameIndex}`);
+      console.log('changing to', `${prefix}${frameIndex}`)
+      await pause(frameDuration);
+    };
+  }
+}
+
+async function spinGun(duration) {
+  document.querySelector('#kirby > .gun').classList.add('spinning');
+  changeBG('#kirby > .gun', 'media/images/spinninggun.png');
+  document.querySelector('#kirby > .gun').style.animationDuration = duration + 'ms';
+  await pause(duration);
+  document.querySelector('#kirby > .gun').classList.remove('spinning');
+  document.querySelector('#kirby > .gun').classList.remove('drawn');
+  changeFrame('kirby', 'waiting');
+  changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
+  document.getElementById('kirby').classList.add('holstering');
+  setTimeout(() => {
+    document.getElementById('kirby').classList.remove('holstering');
+  }, 200);
 }
 
 async function advanceRound() {

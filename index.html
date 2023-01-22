@@ -6,11 +6,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="js/scripts.js"></script>
   <link rel="stylesheet" href="css/styles.css">
-  <title>Document</title>
+  <title>Quick Draw</title>
 </head>
 <body>
   <header>
-    <h1>Quick Draw Game</h1>
+    <h1>Quick Draw</h1>
   </header>
   <main>
     <div id="battle-area">
@@ -23,7 +23,12 @@
         <div class="gun"></div>
       </div>
       <div class="hat" id="attacker-hat"></div>
+      <div id="stat-display">
+        <div id="time-display">340ms</div>
+        <div id="score-display"><img class="score-number" src="media/images/numbers.png"></div>
+      </div>
     </div>
+    
     <div id="intro-area">
       <div id="instructions-screen"></div>
       <button id="start-button">START</button>
@@ -32,10 +37,6 @@
     <div id="bonus-message"></div>
   </main>
   <div id="control-area">
-    <div id="stat-display">
-      <div id="time-display"></div>
-      <div id="score-display"></div>
-    </div>
     <button id="a-button" class="dimmed">A</button>
   </div>
 </body>
