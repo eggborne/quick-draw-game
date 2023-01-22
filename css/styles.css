@@ -41,6 +41,7 @@ main {
 
 #intro-area {
   position: absolute;
+  top: var(--header-height);
   width: 100%;
   display: flex;
   flex-direction: column;
@@ -50,17 +51,17 @@ main {
 }
 
 body.hide-intro #intro-area {
-  opacity: 0;
   pointer-events: none;
+  opacity: 0;
 }
-/* body.playing #intro-area {
-  opacity: 0;
-  pointer-events: none;
-} */
+
+body.hide-intro #battle-area {
+  display: flex;
+}
 
 #stat-display {
   position: absolute;
-  top: calc(var(--game-screen-height) - (var(--nes-pixel-size) * 16));
+  top: calc(var(--game-screen-height) - (var(--nes-pixel-size) * 20));
   width: 100%;
   display: flex;
   justify-content: space-between;
@@ -73,19 +74,23 @@ body.hide-intro #intro-area {
   font-size: 1rem;
 }
 
-img.score-number {
-  height: 100%;
-}
-
 #score-display {
-  /* position: absolute; */
-  /* top: calc(var(--header-height) + var(--game-screen-height) - calc(var(--nes-pixel-size) * 16)); */
-  top: calc(var(--header-height) + var(--game-screen-height));
-  right: 0;
-  height: calc(var(--nes-pixel-size) * 12);
+  height: calc(var(--nes-pixel-size) * 16);
+  display: flex;
+  /* flex-direction: row-reverse; */
+  justify-content: flex-end;
+  
 }
 
-#game-message, #bonus-message, #bonus-message::after {
+.score-number {
+  height: 100%;
+  width: calc(var(--nes-pixel-size) * 8);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: 0 0;
+}
+
+#game-message, #bonus-message, #bonus-message::after, #level-message {
   position: absolute;
   top: calc(var(--nes-pixel-size) * 30);
   width: calc(var(--nes-pixel-size) * 78);
@@ -94,6 +99,30 @@ img.score-number {
   transform-origin: center;
   left: 50vw;
   transform: translateX(-50%);
+  opacity: 0;
+}
+
+#level-message {
+  height: calc(var(--nes-pixel-size) * 24);
+  top: 50%;
+  translate: 0 -50%;
+  width: unset;
+  display: flex;
+  z-index: 1;
+  transition: opacity 750ms ease;
+}
+
+#level-message > img {
+  width: calc(var(--nes-pixel-size) * 60);
+  height: calc(var(--nes-pixel-size) * 24);
+}
+
+#level-message > .level-digit {
+  background-image: url("../media/images/levelnumbers.png");
+  width: calc(var(--nes-pixel-size) * 12);
+  background-repeat: no-repeat;
+  background-size: cover;
+  margin-left: calc(var(--nes-pixel-size) * 6);
 }
 
 #bonus-message, #bonus-message::after {
@@ -200,6 +229,7 @@ body.playing #a-button {
   background-size: cover;
   background-repeat: no-repeat;
   background-position-x: right;
+  /* display: none; */
   transition: background-position-x 1s ease-in-out, opacity 500ms ease-in-out;
 }
 
@@ -213,20 +243,13 @@ body.playing #a-button {
   transition: opacity 750ms ease;
   pointer-events: none;
 }
+
 #battle-area.dimmed::after {
   opacity: 1;
 }
 
 body.playing #battle-area {
   background-position-x: calc(var(--nes-pixel-size) * -205);
-}
-
-#level-legend {
-  
-}
-
-#level-number {
-
 }
 
 .sprite {
@@ -288,7 +311,10 @@ body.playing #battle-area {
   left: calc(var(--nes-pixel-size) * 26);
   transform-origin: bottom left;
   background-size: 100%;
-  animation: spin forwards 1500ms linear;;
+  animation: spin forwards 1500ms linear;
+}
+#kirby > .gun.spinning.tossed {
+  animation: spin forwards 1500ms linear, hat-flip forwards 100ms linear;
 }
 
 #kirby.holstering, #kirby.holstering + .hat {
@@ -351,7 +377,7 @@ body.playing #battle-area {
   animation-name: kirby-hat-flip;
 }
 
-#kirby.visible, #attacker.visible {
+#kirby.visible, #attacker.visible, #kirby.visible + .hat, #attacker.visible + .hat {
   opacity: 1;
 }
 

@@ -13,19 +13,25 @@
     <h1>Quick Draw</h1>
   </header>
   <main>
-    <div id="battle-area">
+
+    <div id="battle-area" class="dimmed">
       <div id="kirby" class="sprite">
         <div class="gun"></div>
       </div>
       <div class="hat" id="kirby-hat"></div>
-      <div>
       <div id="attacker" class="sprite">
         <div class="gun"></div>
       </div>
       <div class="hat" id="attacker-hat"></div>
       <div id="stat-display">
-        <div id="time-display">340ms</div>
-        <div id="score-display"><img class="score-number" src="media/images/numbers.png"></div>
+        <div id="time-display"></div>
+        <div id="score-display"></div>
+      </div>
+      <div id="game-message"></div>
+      <div id="bonus-message"></div>
+      <div id="level-message">
+        <img src="media/images/level.png">
+        <div class="level-digit"></div>
       </div>
     </div>
     
@@ -33,11 +39,11 @@
       <div id="instructions-screen"></div>
       <button id="start-button">START</button>
     </div>
-    <div id="game-message"></div>
-    <div id="bonus-message"></div>
+
+    <div id="control-area">
+      <button id="a-button" class="dimmed">A</button>
+    </div>
+
   </main>
-  <div id="control-area">
-    <button id="a-button" class="dimmed">A</button>
-  </div>
 </body>
 </html>

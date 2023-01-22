@@ -1,3 +1,5 @@
+let jsStarted = Date.now();
+preloadImages();
 const options = {
   introPanSpeed: 1200,
   suspenseTime: { min: 1000, max: 2000 },
@@ -67,6 +69,7 @@ window.addEventListener('load', () => {
   setDimensions();
   document.getElementById('start-button').addEventListener('pointerdown', handleStartClick);
   document.getElementById('a-button').addEventListener('pointerdown', handleAClick);
+  displayNumber(player.score, '#score-display');
 });
 
 function setDimensions() {
@@ -86,13 +89,17 @@ function setDimensions() {
 }
 
 async function handleStartClick() {
-  document.body.classList.add('playing');
   document.body.classList.add('hide-intro');
   initiateRound(levelReached);
 }
 
 async function initiateRound(level) {
+  displayLevel(level+1);
+  await pause(1200);
+  document.getElementById("battle-area").classList.remove('dimmed');
+  await pause(200);
   loadAttacker(attackers[level]);
+  document.body.classList.add('playing');
   await pause(options.introPanSpeed);
   revealFighters();
   let suspenseTime = randomInt(attackers[level].suspenseTime.min, attackers[level].suspenseTime.max);
@@ -103,10 +110,9 @@ async function initiateRound(level) {
 }
 
 function revealFighters(hide) {
-  document.getElementById('kirby').classList[hide ? 'remove' : 'add']('visible');
-  document.getElementById('attacker').classList[hide ? 'remove' : 'add']('visible');
-  document.getElementById('kirby-hat').style.opacity = hide ? 0 : 1;
-  document.getElementById('attacker-hat').style.opacity = hide ? 0 : 1;
+  let action = hide ? 'remove' : 'add';
+  document.getElementById('kirby').classList[action]('visible');
+  document.getElementById('attacker').classList[action]('visible');
 }
 
 async function endRound() {
@@ -121,12 +127,15 @@ function handleAClick(e) {
     if (!roundStatus.drawStarted) {
       changeGameMessage('foul');
       changeFrame('kirby', 'disappointed');
-
       roundStatus.fouled = true;
     } else if (!roundStatus.attackerFired) {
       defeatAttacker();
     }
   }
+}
+
+function playRoundIntro() {
+
 }
 
 async function defeatAttacker() {
@@ -140,9 +149,9 @@ async function defeatAttacker() {
   let reactionTime = Date.now() - roundStatus.startedAt;
   document.getElementById('time-display').innerText = reactionTime + 'ms';
   let bonus = calculateBonus(reactionTime);
-  console.warn('bonus', bonus);
   roundStatus.bonusRank = bonus.rank;
   player.score += bonus.points;
+  displayNumber(bonus.points, '#score-display');
   await pause(1000);
   if (bonus.rank) {
     changeBonusMessage('bonus');
@@ -183,15 +192,6 @@ function calculateBonus(reactionTime) {
   return { points: Math.round(points), rank };
 }
 
-function changeGameMessage(newMessage) {
-  if (newMessage) {
-    document.getElementById('game-message').style.opacity = '1';
-    document.getElementById('game-message').style.backgroundImage = `url("media/images/${newMessage}.png")`;
-  } else {
-    document.getElementById('game-message').style.opacity = '0';
-  }
-}
-
 function changeFrame(playerID, newFrame) {
   let elementID = playerID !== 'kirby' ? 'attacker' : 'kirby';
   let element = document.getElementById(elementID);
@@ -202,12 +202,20 @@ function changeFrame(playerID, newFrame) {
   element.style.backgroundPosition = `${newBGPosition}px 0`;
 }
 
+function changeGameMessage(newMessage) {
+  if (newMessage) {
+    document.getElementById('game-message').style.opacity = '1';
+    document.getElementById('game-message').style.backgroundImage = `url("media/images/${newMessage}.png")`;
+  } else {
+    document.getElementById('game-message').style.opacity = '0';
+  }
+}
+
 function changeBonusMessage(newMessage) {
   if (newMessage) {
     document.getElementById('bonus-message').style.opacity = '1';
     document.getElementById('bonus-message').style.backgroundImage = `url("media/images/${newMessage}.png")`;
     if (roundStatus.bonusRank) {
-      // document.getElementById('bonus-message').style.backgroundImage = `url("media/images/rank-${roundStatus.bonusRank}.png")`;
       document.getElementById('bonus-message').classList.add(`rank-${roundStatus.bonusRank}`);
     }
   } else {
@@ -215,8 +223,32 @@ function changeBonusMessage(newMessage) {
   }
 }
 
-function displayNumber(num) {
-  let sheet;
+function displayLevel(newLevel) {
+  if (newLevel) {
+    document.querySelector('#level-message > .level-digit').style.backgroundPositionX = (newLevel-1) * -8 * game.scaleAmount * pixelSize + 'px';
+    document.getElementById('level-message').style.opacity = '1';
+    setTimeout(() => {
+      document.getElementById('level-message').style.opacity = '0';
+    }, 1200);
+  } else {
+    document.getElementById('level-message').style.opacity = '0';
+  }
+}
+
+function displayNumber(num, targetQuery) {
+  let numString = num.toString();
+  let displayElement = document.querySelector(targetQuery);
+  displayElement.innerHTML = '';
+
+  for (let digit in numString) {
+    let currentDigit = parseInt(numString[digit]);
+    let digitElement = document.createElement('div');
+    // let newBGPosition = 
+    digitElement.classList.add('score-number');
+    digitElement.style.backgroundImage = 'url("media/images/numbers.png")';
+    digitElement.style.backgroundPositionX = (pixelSize * -8) * currentDigit + 'px';
+    displayElement.append(digitElement);
+  }
 }
 
 function loadAttacker(attacker) {
@@ -309,6 +341,26 @@ async function advanceRound() {
   }
   loadAttacker(attackers[levelReached]);
   await callToFire();
+}
+
+function preloadImages() {
+  let images = [];
+  function preload() {
+    for (i = 0; i < preload.arguments.length; i++) {
+      images[i] = new Image();
+      images[i].src = preload.arguments[i];
+    }
+    console.log('loaded', preload.arguments.length, 'images in', (Date.now() - jsStarted));
+  }
+  preload(
+    '../media/images/kirby.png',
+    '../media/images/kirbygun.png',
+    '../media/images/kirbyhat2.png',
+    '../media/images/waddledee.png',
+    '../media/images/waddledeegun.png',
+    '../media/images/waddledeehat.png',
+    '../media/images/numbers.png',
+  );
 }
 
 const pause = async (ms) => new Promise(resolve => setTimeout(resolve, ms));
