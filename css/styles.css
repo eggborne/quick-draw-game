@@ -42,8 +42,6 @@ main {
 #intro-area {
   position: absolute;
   width: 100%;
-  top: var(--header-height); 
-  left: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -74,7 +72,7 @@ body.playing #intro-area {
 }
 
 #bonus-message, #bonus-message::after {
-  top: calc(var(--nes-pixel-size) * 40);
+  top: calc(var(--nes-pixel-size) * 8);
   width: calc(var(--nes-pixel-size) * 80);
   height: calc(var(--nes-pixel-size) * 20);
 }
@@ -89,20 +87,16 @@ body.playing #intro-area {
   transform: translate(-50%, 100%);
 }
 
-#bonus-scrore {
+#bonus-message.rank-1::after {
   background-image: url("../media/images/1000.png");
 }
 
-#bonus-message.rank-1::after {
+#bonus-message.rank-2::after {
   background-image: url("../media/images/3000.png");
 }
 
-#bonus-message.rank-2::after {
-  background-image: url("../media/images/5000.png");
-}
-
 #bonus-message.rank-3::after {
-  content: '5000';
+  background-image: url("../media/images/5000.png");
 }
 
 #bonus-message.no-bonus {
@@ -134,6 +128,7 @@ body.playing #intro-area {
   background-color: #00000055;
   color: #ffffff99;
 }
+
 #a-button {
   top: calc(var(--game-screen-height) + (var(--nes-pixel-size) * 32));
   width: calc(var(--nes-pixel-size) * 80);
@@ -189,36 +184,132 @@ body.playing #battle-area {
   background-position-x: calc(var(--nes-pixel-size) * -190);
 }
 
+#level-legend {
+  
+}
+
+#level-number {
+
+}
+
 .sprite {
   position: absolute;
   background-repeat: no-repeat;
-  background-position: center;
-  background-size: contain;
+  background-position: bottom left;
+  background-size: cover;
   width: var(--sprite-height);
   height: var(--sprite-height);
+  transform-origin: center;
 }
 
 #kirby, #attacker {
-  top: calc(var(--nes-pixel-size) * 75);
+  bottom: calc(var(--nes-pixel-size) * 40);
   opacity: 0;
   transition: opacity 300ms ease-in-out, transform 200ms ease;
 }
 
 #kirby {
   left: calc(var(--nes-pixel-size) * 65);
-  background-image: url("../media/images/kirbywaiting.png");
+  background-image: url("../media/images/kirby.png");
 }
 
 #attacker {
   right: calc(var(--nes-pixel-size) * 28);
-  background-image: url("../media/images/waddledeewaiting.png");
+  background-image: url("../media/images/waddledee.png");
+}
+
+.gun {
+  content: "";
+  position: absolute;
+  background: inherit;
+  background-image: url("../media/images/waddledeegun.png");
+  background-position: top right;
+  top: calc(var(--nes-pixel-size) * -1);
+  left:  calc(var(--nes-pixel-size) * -10.5);
+  width: calc(var(--nes-pixel-size) * 12);
+  height: calc(var(--nes-pixel-size) * 24);
+  display: none;
+}
+
+#kirby > .gun {
+  background-image: url("../media/images/kirbygun.png");
+  top: calc(var(--nes-pixel-size) * -1);
+  left: unset;
+  right: calc(var(--nes-pixel-size) * -12);
+  width: calc(var(--nes-pixel-size) * 24);
+  background-position: top right;
+}
+
+.gun.drawn {
+  display: block;
+}
+
+#kirby > .gun.spinning {
+  display: block;
+  top: unset;
+  bottom: calc(var(--nes-pixel-size) * 8);
+  left: calc(var(--nes-pixel-size) * 26);
+  transform-origin: bottom left;
+  background-size: 100%;
+  animation: spin forwards 1500ms linear;;
+}
+
+.sprite.defeated {
+  animation-name: attacker-die;
+  animation-duration: 500ms;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
 }
 
 #kirby.defeated {
-  transform: rotate(-90deg);
+  animation-name: kirby-die;
+  animation-duration: 300ms;
+  background-image: url("../media/images/kirbydefeated.png");
+  /* background-size: cover; */
+  background-position: left;
 }
-#attacker.defeated {
-  transform: rotate(90deg);
+
+.hat {
+  content: "";
+  position: absolute;
+  width: calc(var(--nes-pixel-size) * 24);
+  height: calc(var(--nes-pixel-size) * 12);
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  transform-origin: center;
+  opacity: 0;
+  transition: opacity 300ms ease-in-out;
+}
+
+.hat.defeated {
+  animation-duration: 1000ms;
+  animation-iteration-count: 1;
+  animation-fill-mode: forwards;
+  animation-timing-function: cubic-bezier(0.445, 0.55, 0.75, 0.95);
+}
+
+#attacker + .hat {
+  background-image: url("../media/images/waddledeehat.png");
+  top: calc(var(--nes-pixel-size) * 81);
+  right: calc(var(--nes-pixel-size) * 28);
+}
+
+#kirby + .hat {
+  background-image: url("../media/images/kirbyhat.png");
+  background-position: top left;
+  bottom: calc(var(--nes-pixel-size) * 46);
+  left: calc(var(--nes-pixel-size) * 65);
+  width: calc(var(--nes-pixel-size) * 24);
+  height: calc(var(--nes-pixel-size) * 24);
+}
+
+#attacker.defeated + .hat {
+  animation-name: hat-flip;
+}
+
+#kirby.defeated + .hat {
+  animation-name: kirby-hat-flip;
 }
 
 #kirby.visible, #attacker.visible {
@@ -243,5 +334,105 @@ body.playing #battle-area {
   }
   to {
     transform: translateX(0);
+  }
+}
+
+@keyframes attacker-die {
+  0% {
+    transform: none;
+    translate: none;
+    margin-bottom: 0%
+
+  }
+  25% {
+    transform: rotate(15deg);
+    translate: 25%;
+    margin-bottom: 8%
+  }
+  50% {
+    transform: rotate(30deg);
+    translate: 50%;
+    margin-bottom: 16%
+  }
+  75% {
+    transform: rotate(45deg);
+    translate: 75%;
+    margin-bottom: 8%
+  }
+  100% {
+    transform: rotate(90deg);
+    translate: 100%;
+    margin-bottom: 0%
+  }
+}
+
+@keyframes kirby-die {
+  0% {
+    transform: none;
+    translate: none;
+    margin-bottom: 0%
+
+  }
+  25% {
+    transform: rotate(-30deg);
+    translate: -30%;
+    margin-bottom: 4%
+  }
+  50% {
+    transform: rotate(-45deg);
+    translate: -45%;
+    margin-bottom: 8%
+  }
+  75% {
+    transform: rotate(-80deg);
+    translate: -60%;
+    margin-bottom: 4%
+  }
+  100% {
+    transform: rotate(-90deg);
+    translate: -75%;
+    margin-bottom: 0%
+  }
+}
+
+@keyframes hat-flip {
+  0% {
+    transform: none;
+    translate: none;
+  }
+  50% {
+    transform: rotate(720deg);
+    translate: 0 -500%;
+  }
+  100% {
+    transform: rotate(1440deg);
+    translate: 0 150%;
+  }
+}
+
+@keyframes kirby-hat-flip {
+  0% {
+    transform: none;
+    translate: none;
+  }
+  50% {
+    transform: rotate(540deg);
+    translate: 0 -250%;
+  }
+  100% {
+    transform: rotate(1080deg);
+    translate: 0 75%;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: none;
+  }
+  50% {
+    transform: rotate(-1080deg);
+  }
+  100% {
+    transform: rotate(-2280deg);
   }
 }

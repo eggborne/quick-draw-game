@@ -14,8 +14,15 @@
   </header>
   <main>
     <div id="battle-area">
-      <div id="kirby" class="sprite"></div>
-      <div id="attacker" class="sprite"></div>
+      <div id="kirby" class="sprite">
+        <div class="gun"></div>
+      </div>
+      <div class="hat" id="kirby-hat"></div>
+      <div>
+      <div id="attacker" class="sprite">
+        <div class="gun"></div>
+      </div>
+      <div class="hat" id="attacker-hat"></div>
     </div>
     <div id="intro-area">
       <div id="instructions-screen"></div>
@@ -25,7 +32,10 @@
     <div id="bonus-message"></div>
   </main>
   <div id="control-area">
-    <div id="time-display"></div>
+    <div id="stat-display">
+      <div id="time-display"></div>
+      <div id="score-display"></div>
+    </div>
     <button id="a-button" class="dimmed">A</button>
   </div>
 </body>

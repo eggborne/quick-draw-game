@@ -4,18 +4,50 @@ const options = {
   bonusAmounts: [ 0, 1000, 3000, 5000 ],
 }
 
+const game = {
+  scaleAmount: 1.5,
+};
+
+const player = {
+  score: 0,
+
+}
+
+const spriteSheetData = {
+  kirby: {
+    baseSize: { width: 16, height: 16 },
+    frames: [
+      'waiting',
+      'drawing',
+      'dead1',
+      'dead2',
+      'dead3',
+      'disappointed',
+    ],
+  },
+  waddledee: {
+    baseSize: { width: 16, height: 16 },
+    frames: [
+      'waiting',
+      'drawing',
+      'dead'
+    ],
+  }
+}
+
 const attackers = [
   {
     name: 'waddledee',
     drawSpeed: 800,
-    width: 24,
-    height: 24,
+    scale: 1,
+    suspenseTime: { min: 1500, max: 2500 },
   },
   {
     name: 'chicken',
     drawSpeed: 400,
     width: 24,
     height: 28,
+    suspenseTime: { min: 750, max: 4000 },
   }
 ];
 const roundStatus = {
@@ -41,11 +73,12 @@ function setDimensions() {
   document.documentElement.style.setProperty('--intro-pan-speed', options.introPanSpeed + 'ms');
   let pixelWidth = 170;
   let pixelHeight = 150;
-  pixelSize = (window.innerWidth / pixelWidth);
+  pixelSize = window.innerWidth / pixelWidth;
   let gameScreenHeight = Math.round(pixelSize * pixelHeight);
   console.warn('pixelSize:', pixelSize);
   console.warn('gameScreenHeight = ' + gameScreenHeight);
-  let spriteHeight = Math.round(pixelSize * 24);
+  // let spriteHeight = Math.round(pixelSize * 24);
+  let spriteHeight = pixelSize * 24;
   document.documentElement.style.setProperty('--nes-pixel-size', pixelSize + 'px');
   document.documentElement.style.setProperty('--game-screen-height', gameScreenHeight + 'px');
   document.documentElement.style.setProperty('--sprite-height', spriteHeight + 'px');
@@ -61,9 +94,13 @@ async function initiateRound(level) {
   await pause(options.introPanSpeed);
   document.getElementById('kirby').classList.add('visible');
   document.getElementById('attacker').classList.add('visible');
-  let suspenseTime = randomInt(options.suspenseTime.min, options.suspenseTime.max);
+  document.getElementById('kirby-hat').style.opacity = 1;
+  document.getElementById('attacker-hat').style.opacity = 1;
+  let suspenseTime = randomInt(attackers[level].suspenseTime.min, attackers[level].suspenseTime.max);
   await pause(suspenseTime);
-  callToFire();
+  if (!roundStatus.fouled) {
+    callToFire();
+  }  
 }
 
 async function endRound() {
@@ -79,6 +116,8 @@ function handleAClick(e) {
   if (!roundStatus.fouled && !roundStatus.won && !roundStatus.attackerFired) {
     if (!roundStatus.drawStarted) {
       changeGameMessage('foul');
+      changeFrame('kirby', 'disappointed');
+
       roundStatus.fouled = true;
     } else if (!roundStatus.attackerFired) {
       defeatAttacker();
@@ -87,38 +126,68 @@ function handleAClick(e) {
 }
 
 async function defeatAttacker() {
-  changeGameMessage('win');
-  document.getElementById('kirby').style.backgroundImage = `url("media/images/kirbyfiring.png")`;
+  changeFrame('kirby', 'drawing');
+  changeBG('#kirby + .hat', 'media/images/kirbyhat2.png');
+  document.querySelector('#kirby > .gun').classList.add('drawn');
   document.getElementById('attacker').classList.add('defeated');
+  document.getElementById('attacker-hat').classList.add('defeated');
+  changeFrame(attackers[levelReached].name, 'dead')
   roundStatus.won = true;
   let reactionTime = Date.now() - roundStatus.startedAt;
   document.getElementById('time-display').innerText = reactionTime + 'ms';
-  let bonusRank = 0;
-  let bonusLimits = [
-    (attackers[levelReached].drawSpeed * 0.3),
-    (attackers[levelReached].drawSpeed * 0.45),
-    (attackers[levelReached].drawSpeed * 0.6),
-  ];
-  console.table(bonusLimits);
-  if (reactionTime <= bonusLimits[0]) {
-    bonusRank = 3;
-  } else if (reactionTime <= bonusLimits[1]) {
-    bonusRank = 2;
-  } else if (reactionTime <= bonusLimits[2]) {
-    bonusRank = 1;
-  }
-  let bonusPoints = options.bonusAmounts[bonusRank];
-  let timeToSpare = (attackers[levelReached].drawSpeed - reactionTime);
-  let spareBonus = timeToSpare * (bonusRank/2);
-  bonusPoints += spareBonus;
-  console.warn('bonusPoints', bonusPoints);
-  roundStatus.bonusRank = bonusRank;
+  let bonus = calculateBonus(reactionTime);
+  console.warn('bonus', bonus);
+  roundStatus.bonusRank = bonus.rank;
+  player.score += bonus.points;
   await pause(300);
-  if (bonusRank) {
+  if (bonus.rank) {
     changeBonusMessage('bonus');
   } else {
     changeBonusMessage('nobonus');
   }
+  await pause(500);
+  changeFrame('kirby', 'waiting');
+  changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
+  document.querySelector('#kirby > .gun').classList.remove('drawn');
+  await pause(200);
+  changeFrame('kirby', 'drawing');
+  changeBG('#kirby + .hat', 'media/images/kirbyhat2.png');
+  document.querySelector('#kirby > .gun').classList.add('spinning');
+  changeBG('#kirby > .gun', 'media/images/spinninggun.png');
+  let spinTime = randomInt(500, 2000);
+  document.querySelector('#kirby > .gun').style.animationDuration = spinTime + 'ms';
+  await pause(spinTime);
+  document.querySelector('#kirby > .gun').classList.remove('spinning');
+  document.querySelector('#kirby > .gun').classList.remove('drawn');
+  changeFrame('kirby', 'waiting');
+  changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
+}
+
+function changeBG(query, imagePath) {
+  document.querySelector(query).style.backgroundImage = `url(${imagePath})`;
+}
+
+function calculateBonus(reactionTime) {
+  let rank = 0;
+  let attacker = attackers[levelReached];
+  let bonusLimits = [
+    (attacker.drawSpeed * 0.3),
+    (attacker.drawSpeed * 0.45),
+    (attacker.drawSpeed * 0.6),
+  ];
+  console.table(bonusLimits);
+  if (reactionTime <= bonusLimits[0]) {
+    rank = 3;
+  } else if (reactionTime <= bonusLimits[1]) {
+    rank = 2;
+  } else if (reactionTime <= bonusLimits[2]) {
+    rank = 1;
+  }
+  let points = options.bonusAmounts[rank];
+  let timeToSpare = (attacker.drawSpeed - reactionTime);
+  let spareBonus = timeToSpare * (rank/3);
+  points += spareBonus;
+  return { points: Math.round(points), rank };
 }
 
 function changeGameMessage(newMessage) {
@@ -128,6 +197,16 @@ function changeGameMessage(newMessage) {
   } else {
     document.getElementById('game-message').style.opacity = '0';
   }
+}
+
+function changeFrame(playerID, newFrame) {
+  let elementID = playerID !== 'kirby' ? 'attacker' : 'kirby';
+  let element = document.getElementById(elementID);
+  let baseSize = spriteSheetData[playerID].baseSize;
+  let frameIndex = spriteSheetData[playerID].frames.indexOf(newFrame);
+  let newBGPosition = pixelSize * baseSize.width * game.scaleAmount * frameIndex * -1;
+  console.log('newBGPosition for', playerID, newBGPosition)
+  element.style.backgroundPosition = `${newBGPosition}px 0`;
 }
 
 function changeBonusMessage(newMessage) {
@@ -146,16 +225,21 @@ function changeBonusMessage(newMessage) {
 function loadAttacker(attacker) {
   console.log('loading', attacker.name);
   let attackerElement = document.getElementById('attacker');
-  attackerElement.style.backgroundImage = `url(../media/images/${attacker.name}waiting.png)`;
-  console.log('width to', Math.round(pixelSize * attacker.width) + 'px')
-  console.log('height to', Math.round(pixelSize * attacker.height) + 'px')
-  attackerElement.style.width = Math.round(pixelSize * attacker.width) + 'px';
-  attackerElement.style.height = Math.round(pixelSize * attacker.height) + 'px';
+  attackerElement.style.backgroundImage = `url("media/images/${attacker.name}.png")`;
+  let actualSize = {
+    width: spriteSheetData[attacker.name].baseSize.width * pixelSize * game.scaleAmount,
+    height: spriteSheetData[attacker.name].baseSize.width * pixelSize * game.scaleAmount,
+  };
+  console.log('width to', actualSize.width + 'px')
+  console.log('height to', actualSize.height + 'px')
+  attackerElement.style.width = actualSize.width + 'px';
+  attackerElement.style.height = actualSize.height + 'px';
+  document.getElementById('attacker-hat').style.width = actualSize.width + 'px';
+  document.getElementById('attacker-hat').style.height = actualSize.height/2 + 'px';
 }
 
 async function callToFire() {
   let attackDelay = attackers[levelReached].drawSpeed;
-  console.warn('starting round with', attackers[levelReached].name, attackDelay)
   roundStatus.startedAt = Date.now();
   changeGameMessage('fire');
   document.getElementById('a-button').classList.remove('dimmed');
@@ -163,14 +247,13 @@ async function callToFire() {
     changeGameMessage();
     document.getElementById('a-button').classList.add('dimmed');
   }, attackDelay);
-  document.getElementById('attacker').style.backgroundImage = `url("media/images/${attackers[levelReached].name}firing1.png")`;
+  changeFrame(attackers[levelReached].name, 'drawing')
   roundStatus.drawStarted = true;
-  console.warn('attack delay starting...', attackDelay);
   await pause(attackDelay);
-  console.warn('attack delay over', attackDelay);
   if (!roundStatus.won && !roundStatus.fouled) {
-    document.getElementById('attacker').style.backgroundImage = `url("media/images/${attackers[levelReached].name}firing2.png")`;
+    document.querySelector('#attacker > .gun').classList.add('drawn');
     document.getElementById('kirby').classList.add('defeated');
+    document.querySelector('#kirby + .hat').classList.add('defeated');
     roundStatus.attackerFired = true;
   }
 }
@@ -184,10 +267,6 @@ async function advanceRound() {
   await callToFire();
 }
 
-const pause = async (ms) => {
-  return new Promise(resolve => {
-    setTimeout(resolve, ms)
-  })
-};
+const pause = async (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
