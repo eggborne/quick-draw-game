@@ -1,18 +1,30 @@
 let jsStarted = Date.now();
-preloadImages();
+
+const imagePaths = [
+  'media/images/kirby.png',
+  'media/images/waddledee.png',
+  'media/images/numbers.png',
+  'media/images/1000.png',
+  'media/images/3000.png',
+  'media/images/5000.png',
+];
+await preloadImages();
+console.log('loaded', imagePaths.length, 'images in', (Date.now() - jsStarted));
+
 const options = {
   introPanSpeed: 1200,
   suspenseTime: { min: 1000, max: 2000 },
-  bonusAmounts: [ 0, 1000, 3000, 5000 ],
+  bonusAmounts: [0, 1000, 3000, 5000],
 }
 
 const game = {
   scaleAmount: 1.5,
+  spriteBuffer: 2,
 };
 
 const player = {
   score: 0,
-
+  level: 0,
 }
 
 const spriteSheetData = {
@@ -21,20 +33,36 @@ const spriteSheetData = {
     frames: [
       'waiting',
       'drawing',
-      'disappointed',
+      'blinking',
       'dead1',
       'dead2',
       'dead3',
       'dead4',
     ],
+    attachments: {
+      hat: {
+        frames: ['hat', 'hat2']
+      },
+      gun: {
+        frames: ['gun', 'spinninggun'],
+      }
+    }
   },
   waddledee: {
     baseSize: { width: 16, height: 16 },
     frames: [
       'waiting',
       'drawing',
-      'dead'
+      'dead',
     ],
+    attachments: {
+      hat: {
+        frames: ['hat']
+      },
+      gun: {
+        frames: ['gun']
+      }
+    }
   }
 }
 
@@ -62,14 +90,15 @@ const roundStatus = {
   bonusRank: 0,
 }
 
-const levelReached = 0;
 let pixelSize;
+let scaledPixelSize;
 
 window.addEventListener('load', () => {
   setDimensions();
   document.getElementById('start-button').addEventListener('pointerdown', handleStartClick);
   document.getElementById('a-button').addEventListener('pointerdown', handleAClick);
   displayNumber(player.score, '#score-display');
+  document.body.style.opacity = 1;
 });
 
 function setDimensions() {
@@ -77,27 +106,34 @@ function setDimensions() {
   document.documentElement.style.setProperty('--intro-pan-speed', options.introPanSpeed + 'ms');
   let pixelWidth = 170;
   let pixelHeight = 150;
-  pixelSize = window.innerWidth / pixelWidth;
-  let gameScreenHeight = Math.round(pixelSize * pixelHeight);
+  pixelSize = (window.innerWidth / pixelWidth);
+  scaledPixelSize = pixelSize * game.scaleAmount;
+  // let gameScreenHeight = Math.round(pixelSize * pixelHeight);
+  let gameScreenHeight = pixelSize * pixelHeight;
   console.warn('pixelSize:', pixelSize);
-  console.warn('gameScreenHeight = ' + gameScreenHeight);
+  console.warn('scaledPixelSize:', scaledPixelSize);
+  console.warn('gameScreenHeight:', gameScreenHeight);
   // let spriteHeight = Math.round(pixelSize * 24);
-  let spriteHeight = pixelSize * 24;
+  let spriteHeight = scaledPixelSize * 16;
+  console.warn('spriteHeight:', spriteHeight);
+  
+  // document.documentElement.style.setProperty('--nes-pixel-size', pixelSize + 'px');
   document.documentElement.style.setProperty('--nes-pixel-size', pixelSize + 'px');
+  document.documentElement.style.setProperty('--scaled-pixel-size', scaledPixelSize + 'px');
   document.documentElement.style.setProperty('--game-screen-height', gameScreenHeight + 'px');
   document.documentElement.style.setProperty('--sprite-height', spriteHeight + 'px');
 }
 
 async function handleStartClick() {
   document.body.classList.add('hide-intro');
-  initiateRound(levelReached);
+  initiateRound(player.level);
 }
 
 async function initiateRound(level) {
-  displayLevel(level+1);
-  await pause(1200);
+  console.log('init round', level)
+  displayLevel(level);
+  await pause(2000);
   document.getElementById("battle-area").classList.remove('dimmed');
-  await pause(200);
   loadAttacker(attackers[level]);
   document.body.classList.add('playing');
   await pause(options.introPanSpeed);
@@ -106,7 +142,7 @@ async function initiateRound(level) {
   await pause(suspenseTime);
   if (!roundStatus.fouled) {
     callToFire();
-  }  
+  }
 }
 
 function revealFighters(hide) {
@@ -120,38 +156,50 @@ async function endRound() {
   document.body.classList.remove('playing');
   await pause(300);
   document.getElementById('battle-area').classList.add('dimmed');
+  await pause(1000);
+  changeFrame('kirby', 'waiting');
+  changeFrame('waddledee', 'waiting');
+  document.getElementById('kirby').classList = ['sprite'];
+  document.getElementById('attacker').classList = ['sprite'];
+  document.querySelector('#kirby > .gun').classList = ['gun'];
+  document.querySelector('#attacker > .gun').classList = ['gun'];
+  changeGameMessage();
+  roundStatus.drawStarted = false;
+  roundStatus.attackerFired = false;
+  roundStatus.fouled = false;
+  roundStatus.won = false;
+  roundStatus.startedAt = 0;
+  roundStatus.bonusRank = 0;
 }
 
-function handleAClick(e) {
+async function handleAClick(e) {
   if (!roundStatus.fouled && !roundStatus.won && !roundStatus.attackerFired) {
     if (!roundStatus.drawStarted) {
       changeGameMessage('foul');
-      changeFrame('kirby', 'disappointed');
+      changeFrame('kirby', 'blinking');
       roundStatus.fouled = true;
+      await pause(1000);
+      await endRound();
+      initiateRound(0);
     } else if (!roundStatus.attackerFired) {
       defeatAttacker();
     }
   }
 }
 
-function playRoundIntro() {
-
-}
-
 async function defeatAttacker() {
+  document.getElementById('kirby').classList.add('drawing');
   changeFrame('kirby', 'drawing');
-  changeBG('#kirby + .hat', 'media/images/kirbyhat2.png');
-  document.querySelector('#kirby > .gun').classList.add('drawn');
   document.getElementById('attacker').classList.add('defeated');
   document.getElementById('attacker-hat').classList.add('defeated');
-  changeFrame(attackers[levelReached].name, 'dead')
+  changeFrame(attackers[player.level].name, 'dead')
   roundStatus.won = true;
   let reactionTime = Date.now() - roundStatus.startedAt;
   document.getElementById('time-display').innerText = reactionTime + 'ms';
   let bonus = calculateBonus(reactionTime);
   roundStatus.bonusRank = bonus.rank;
   player.score += bonus.points;
-  displayNumber(bonus.points, '#score-display');
+  displayNumber(player.score, '#score-display');
   await pause(1000);
   if (bonus.rank) {
     changeBonusMessage('bonus');
@@ -162,7 +210,9 @@ async function defeatAttacker() {
   await spinGun(randomInt(500, 2000));
   await pause(1200);
   changeBonusMessage();
+
   await endRound();
+  initiateRound(0);
 }
 
 function changeBG(query, imagePath) {
@@ -171,7 +221,7 @@ function changeBG(query, imagePath) {
 
 function calculateBonus(reactionTime) {
   let rank = 0;
-  let attacker = attackers[levelReached];
+  let attacker = attackers[player.level];
   let bonusLimits = [
     (attacker.drawSpeed * 0.3),
     (attacker.drawSpeed * 0.45),
@@ -187,18 +237,20 @@ function calculateBonus(reactionTime) {
   }
   let points = options.bonusAmounts[rank];
   let timeToSpare = (attacker.drawSpeed - reactionTime);
-  let spareBonus = timeToSpare * (rank/3);
+  let spareBonus = timeToSpare * (rank / 3);
   points += spareBonus;
   return { points: Math.round(points), rank };
 }
 
 function changeFrame(playerID, newFrame) {
-  let elementID = playerID !== 'kirby' ? 'attacker' : 'kirby';
+  let elementID = playerID === 'kirby' ? 'kirby' : 'attacker';
   let element = document.getElementById(elementID);
   let baseSize = spriteSheetData[playerID].baseSize;
   let frameIndex = spriteSheetData[playerID].frames.indexOf(newFrame);
-  let newBGPosition = pixelSize * baseSize.width * game.scaleAmount * frameIndex * -1;
-  console.log('newBGPosition for', playerID, newBGPosition)
+  let scaledBuffer = game.spriteBuffer * frameIndex;
+  let newBGPosition = ((baseSize.width * frameIndex * -1) - scaledBuffer);
+  newBGPosition *= pixelSize;;
+  newBGPosition *= game.scaleAmount;
   element.style.backgroundPosition = `${newBGPosition}px 0`;
 }
 
@@ -224,15 +276,12 @@ function changeBonusMessage(newMessage) {
 }
 
 function displayLevel(newLevel) {
-  if (newLevel) {
-    document.querySelector('#level-message > .level-digit').style.backgroundPositionX = (newLevel-1) * -8 * game.scaleAmount * pixelSize + 'px';
-    document.getElementById('level-message').style.opacity = '1';
-    setTimeout(() => {
-      document.getElementById('level-message').style.opacity = '0';
-    }, 1200);
-  } else {
+  newLevel++;
+  document.querySelector('#level-message > .level-digit').style.backgroundPositionX = (newLevel - 1) * -8 * game.scaleAmount * pixelSize + 'px';
+  document.getElementById('level-message').style.opacity = '1';
+  setTimeout(() => {
     document.getElementById('level-message').style.opacity = '0';
-  }
+  }, 1200);
 }
 
 function displayNumber(num, targetQuery) {
@@ -243,7 +292,6 @@ function displayNumber(num, targetQuery) {
   for (let digit in numString) {
     let currentDigit = parseInt(numString[digit]);
     let digitElement = document.createElement('div');
-    // let newBGPosition = 
     digitElement.classList.add('score-number');
     digitElement.style.backgroundImage = 'url("media/images/numbers.png")';
     digitElement.style.backgroundPositionX = (pixelSize * -8) * currentDigit + 'px';
@@ -263,12 +311,10 @@ function loadAttacker(attacker) {
   console.log('height to', actualSize.height + 'px')
   attackerElement.style.width = actualSize.width + 'px';
   attackerElement.style.height = actualSize.height + 'px';
-  document.getElementById('attacker-hat').style.width = actualSize.width + 'px';
-  document.getElementById('attacker-hat').style.height = actualSize.height/2 + 'px'; // hat.png should be 16x16
 }
 
 async function callToFire() {
-  let attackDelay = attackers[levelReached].drawSpeed;
+  let attackDelay = attackers[player.level].drawSpeed;
   roundStatus.startedAt = Date.now();
   changeGameMessage('fire');
   document.getElementById('a-button').classList.remove('dimmed');
@@ -276,21 +322,27 @@ async function callToFire() {
     changeGameMessage();
     document.getElementById('a-button').classList.add('dimmed');
   }, attackDelay);
-  changeFrame(attackers[levelReached].name, 'drawing')
+  changeFrame(attackers[player.level].name, 'drawing')
   roundStatus.drawStarted = true;
+  document.getElementById('attacker').classList.add('telegraphing');
   await pause(attackDelay);
   if (!roundStatus.won && !roundStatus.fouled) {
     roundStatus.attackerFired = true;
-    document.querySelector('#attacker > .gun').classList.add('drawn');
+    document.getElementById('attacker').classList.remove('telegraphing');
+    document.getElementById('attacker').classList.add('drawing');
+    // document.querySelector('#attacker > .gun').classList.add('drawn');
     document.getElementById('kirby').classList.add('defeated');
     document.querySelector('#kirby + .hat').classList.add('defeated');
     await animateFrameSequence('kirby', 'dead', [
-      {frame: 1, duration: 225},
-      {frame: 2, duration: 225},
-      {frame: 3, duration: 150},
-      {frame: 4, duration: 225},
-      {frame: 3, duration: 150},
+      { frame: 1, duration: 225 },
+      { frame: 2, duration: 225 },
+      { frame: 3, duration: 150 },
+      { frame: 4, duration: 225 },
+      { frame: 3, duration: 150 },
     ]);
+    await pause(750);
+    await endRound();
+    initiateRound(0);
   }
 }
 
@@ -303,31 +355,26 @@ async function animateFrameSequence(elementID, prefix, sequence) {
       await pause(200);
     }
   } else {
-    // for (let i = 0; i < sequence.length-1; i++) {
-    //   let frameIndex = sequence[i];
-    //   changeFrame('kirby', `${prefix}${frameIndex}`);
-    //   console.log('changing to', `${prefix}${frameIndex}`)
-    //   await pause(200);
-    // };
     for (let step in sequence) {
       let frameIndex = sequence[step].frame;
       let frameDuration = sequence[step].duration;
       changeFrame(elementID, `${prefix}${frameIndex}`);
-      console.log('changing to', `${prefix}${frameIndex}`)
       await pause(frameDuration);
     };
   }
 }
 
 async function spinGun(duration) {
-  document.querySelector('#kirby > .gun').classList.add('spinning');
-  changeBG('#kirby > .gun', 'media/images/spinninggun.png');
+  document.getElementById('kirby').classList.add('spinning');
+  // document.querySelector('#kirby > .gun').classList.add('spinning');
   document.querySelector('#kirby > .gun').style.animationDuration = duration + 'ms';
   await pause(duration);
-  document.querySelector('#kirby > .gun').classList.remove('spinning');
-  document.querySelector('#kirby > .gun').classList.remove('drawn');
+  document.getElementById('kirby').classList.remove('spinning');
+  document.getElementById('kirby').classList.remove('drawing');
+  // document.querySelector('#kirby > .gun').classList.remove('spinning');
+  // document.querySelector('#kirby > .gun').classList.remove('drawn');
   changeFrame('kirby', 'waiting');
-  changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
+  // changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
   document.getElementById('kirby').classList.add('holstering');
   setTimeout(() => {
     document.getElementById('kirby').classList.remove('holstering');
@@ -335,32 +382,29 @@ async function spinGun(duration) {
 }
 
 async function advanceRound() {
-  levelReached++;
-  if (levelReached >= attackers.length) {
-    levelReached = 0;
+  player.level++;
+  if (player.level >= attackers.length) {
+    player.level = 0;
   }
-  loadAttacker(attackers[levelReached]);
+  loadAttacker(attackers[player.level]);
   await callToFire();
 }
 
-function preloadImages() {
+function preload(arr) {
   let images = [];
-  function preload() {
-    for (i = 0; i < preload.arguments.length; i++) {
-      images[i] = new Image();
-      images[i].src = preload.arguments[i];
-    }
-    console.log('loaded', preload.arguments.length, 'images in', (Date.now() - jsStarted));
-  }
-  preload(
-    '../media/images/kirby.png',
-    '../media/images/kirbygun.png',
-    '../media/images/kirbyhat2.png',
-    '../media/images/waddledee.png',
-    '../media/images/waddledeegun.png',
-    '../media/images/waddledeehat.png',
-    '../media/images/numbers.png',
-  );
+  for (let p = 0; p < arr.length; p++) {
+    let path = arr[p];
+    images[p] = new Image();
+    images[p].src = path;
+    images[p].style.display = 'none';
+    document.body.appendChild(images[p]);
+  };
+}
+function preloadImages() {
+  return new Promise((resolve) => {
+    preload(imagePaths);
+    resolve();
+  });
 }
 
 const pause = async (ms) => new Promise(resolve => setTimeout(resolve, ms));

@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="js/scripts.js"></script>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/styles2.css">
+  <script src="js/scripts.js" type="module"></script>
   <title>Quick Draw</title>
 </head>
 <body>
@@ -13,16 +13,15 @@
     <h1>Quick Draw</h1>
   </header>
   <main>
-
     <div id="battle-area" class="dimmed">
       <div id="kirby" class="sprite">
         <div class="gun"></div>
       </div>
-      <div class="hat" id="kirby-hat"></div>
+      <div class="hat sprite" id="kirby-hat"></div>
       <div id="attacker" class="sprite">
         <div class="gun"></div>
       </div>
-      <div class="hat" id="attacker-hat"></div>
+      <div class="hat sprite" id="attacker-hat"></div>
       <div id="stat-display">
         <div id="time-display"></div>
         <div id="score-display"></div>
@@ -34,16 +33,13 @@
         <div class="level-digit"></div>
       </div>
     </div>
-    
     <div id="intro-area">
       <div id="instructions-screen"></div>
       <button id="start-button">START</button>
     </div>
-
     <div id="control-area">
       <button id="a-button" class="dimmed">A</button>
     </div>
-
   </main>
 </body>
 </html>

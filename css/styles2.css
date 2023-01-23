@@ -2,8 +2,9 @@
   --actual-height: 100vh;
   --header-height: 3rem;
   --nes-pixel-size: 1px;
+  --scaled-pixel-size: 1px;
   --game-screen-height: 300px;
-  --sprite-height: calc(var(--nes-pixel-size) * 24);
+  --sprite-height: calc(var(--scaled-pixel-size) * 16);
 
 }
 
@@ -63,17 +64,18 @@ body.hide-intro #battle-area {
 
 #stat-display {
   position: absolute;
-  top: calc(var(--game-screen-height) - (var(--nes-pixel-size) * 20));
+  top: calc(var(--game-screen-height) - (var(--scaled-pixel-size) * 16));
   width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
   box-sizing: border-box;
-  padding: 0 calc(var(--nes-pixel-size) * 4);
+  padding: 0 calc(var(--scaled-pixel-size) * 4);
 }
 
 #time-display {
   font-size: 1rem;
+  color: red;
 }
 
 #score-display {
@@ -134,13 +136,14 @@ body.hide-intro #battle-area {
 }
 
 #bonus-message::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 50%;
   width: calc(var(--nes-pixel-size) * 30);
   height: calc(var(--nes-pixel-size) * 24);
   transform: translate(-50%, 100%);
+  opacity: inherit;
 }
 
 #bonus-message.rank-1::after {
@@ -375,7 +378,7 @@ body.playing #battle-area {
   background-position: calc(var(--nes-pixel-size) * -81);
   bottom: calc(var(--nes-pixel-size) * 50.5);
   right: calc(var(--nes-pixel-size) * 29);
-  width: calc(var(--sprite-height));
+  /* width: calc(var(--sprite-height)); */
   /* opacity: 0 !important; */
 }
 
