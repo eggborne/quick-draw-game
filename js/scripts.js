@@ -11,7 +11,7 @@ const imagePaths = [
 await preloadImages();
 console.log('loaded', imagePaths.length, 'images in', (Date.now() - jsStarted));
 
-const game = {
+const devSettings = {
   scaleAmount: 1,
   spriteBuffer: 2,
   baseSpriteSize: 16,
@@ -67,6 +67,14 @@ const spriteSheetData = {
   }
 };
 
+const players = [
+  {
+    name: 'kirby',
+    imagePath: 'media/images/kirby.png',
+    scale: 1,    
+  },
+]
+
 const attackers = [
   {
     name: 'waddledee',
@@ -82,6 +90,7 @@ const attackers = [
     suspenseTime: { min: 750, max: 4000 },
   }
 ];
+
 const roundStatus = {
   drawStarted: false,
   attackerFired: false,
@@ -108,15 +117,15 @@ function setDimensions() {
   let pixelsPerWidth = 170;
   let pixelsPerHeight = 150;
   pixelSize = (window.innerWidth / pixelsPerWidth).toFixed(2);
-  scaledPixelSize = pixelSize * game.scasPerleAmount;
-  // let gameScreenHeight = Math.round(pixelSize * pixelHeight);
+  scaledPixelSize = pixelSize * devSettings.scaleAmount;
+  // let gameScreenHeight = Math.round(pixelSize * pixelsPerHeight);
   console.warn('pixelSize:', pixelSize);
   // console.warn('gameScreenHeight:', gameScreenHeight);
-  let spriteHeight = scaledPixelSize * game.baseSpriteSize;
-  // let spriteHeight = (scaledPixelSize * game.baseSpriteSize).toFixed(1);
+  let spriteHeight = scaledPixelSize * devSettings.baseSpriteSize;
+  // let spriteHeight = (scaledPixelSize * devSettings.baseSpriteSize).toFixed(1);
   console.warn('spriteHeight:', spriteHeight);
   
-  document.documentElement.style.setProperty('--base-sprite-size', game.baseSpriteSize);
+  document.documentElement.style.setProperty('--base-sprite-size', devSettings.baseSpriteSize);
   // document.documentElement.style.setProperty('--nes-pixel-size', pixelSize + 'px');
   // document.documentElement.style.setProperty('--scaled-pixel-size', scaledPixelSize + 'px');
   // document.documentElement.style.setProperty('--sprite-height', spriteHeight + 'px');
@@ -240,13 +249,18 @@ function calculateBonus(reactionTime) {
 
 function changeFrame(playerID, newFrame) {
   let elementID = playerID === 'kirby' ? 'kirby' : 'attacker';
+
+
+////////////////////////////////////////////////////////////////
+
+
   let element = document.getElementById(elementID);
   let baseSize = spriteSheetData[playerID].baseSize;
   let frameIndex = spriteSheetData[playerID].frames.indexOf(newFrame);
-  let scaledBuffer = game.spriteBuffer * frameIndex;
+  let scaledBuffer = devSettings.spriteBuffer * frameIndex;
   let newBGPosition = ((baseSize.width * frameIndex * -1) - scaledBuffer);
   console.log('BG x for', playerID, newBGPosition);
-  newBGPosition *= game.scaleAmount;
+  newBGPosition *= devSettings.scaleAmount;
   element.style.backgroundPositionX = `${newBGPosition}px`;
 }
 
@@ -273,7 +287,7 @@ function changeBonusMessage(newMessage) {
 
 function displayLevel(newLevel) {
   newLevel++;
-  document.querySelector('#level-message > .level-digit').style.backgroundPositionX = (newLevel - 1) * -8 * game.scaleAmount * pixelSize + 'px';
+  document.querySelector('#level-message > .level-digit').style.backgroundPositionX = (newLevel - 1) * -8 * devSettings.scaleAmount * pixelSize + 'px';
   document.getElementById('level-message').style.opacity = '1';
   setTimeout(() => {
     document.getElementById('level-message').style.opacity = '0';
