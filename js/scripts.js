@@ -11,21 +11,22 @@ const imagePaths = [
 await preloadImages();
 console.log('loaded', imagePaths.length, 'images in', (Date.now() - jsStarted));
 
+const game = {
+  scaleAmount: 1,
+  spriteBuffer: 2,
+  baseSpriteSize: 16,
+};
+
 const options = {
   introPanSpeed: 1200,
   suspenseTime: { min: 1000, max: 2000 },
   bonusAmounts: [0, 1000, 3000, 5000],
-}
-
-const game = {
-  scaleAmount: 1.5,
-  spriteBuffer: 2,
 };
 
 const player = {
   score: 0,
   level: 0,
-}
+};
 
 const spriteSheetData = {
   kirby: {
@@ -64,7 +65,7 @@ const spriteSheetData = {
       }
     }
   }
-}
+};
 
 const attackers = [
   {
@@ -88,7 +89,7 @@ const roundStatus = {
   won: false,
   startedAt: 0,
   bonusRank: 0,
-}
+};
 
 let pixelSize;
 let scaledPixelSize;
@@ -104,24 +105,22 @@ window.addEventListener('load', () => {
 function setDimensions() {
   document.documentElement.style.setProperty('--actual-height', window.innerHeight + 'px');
   document.documentElement.style.setProperty('--intro-pan-speed', options.introPanSpeed + 'ms');
-  let pixelWidth = 170;
-  let pixelHeight = 150;
-  pixelSize = (window.innerWidth / pixelWidth);
-  scaledPixelSize = pixelSize * game.scaleAmount;
+  let pixelsPerWidth = 170;
+  let pixelsPerHeight = 150;
+  pixelSize = (window.innerWidth / pixelsPerWidth).toFixed(2);
+  scaledPixelSize = pixelSize * game.scasPerleAmount;
   // let gameScreenHeight = Math.round(pixelSize * pixelHeight);
-  let gameScreenHeight = pixelSize * pixelHeight;
   console.warn('pixelSize:', pixelSize);
-  console.warn('scaledPixelSize:', scaledPixelSize);
-  console.warn('gameScreenHeight:', gameScreenHeight);
-  // let spriteHeight = Math.round(pixelSize * 24);
-  let spriteHeight = scaledPixelSize * 16;
+  // console.warn('gameScreenHeight:', gameScreenHeight);
+  let spriteHeight = scaledPixelSize * game.baseSpriteSize;
+  // let spriteHeight = (scaledPixelSize * game.baseSpriteSize).toFixed(1);
   console.warn('spriteHeight:', spriteHeight);
   
+  document.documentElement.style.setProperty('--base-sprite-size', game.baseSpriteSize);
   // document.documentElement.style.setProperty('--nes-pixel-size', pixelSize + 'px');
-  document.documentElement.style.setProperty('--nes-pixel-size', pixelSize + 'px');
-  document.documentElement.style.setProperty('--scaled-pixel-size', scaledPixelSize + 'px');
-  document.documentElement.style.setProperty('--game-screen-height', gameScreenHeight + 'px');
-  document.documentElement.style.setProperty('--sprite-height', spriteHeight + 'px');
+  // document.documentElement.style.setProperty('--scaled-pixel-size', scaledPixelSize + 'px');
+  // document.documentElement.style.setProperty('--sprite-height', spriteHeight + 'px');
+  // document.documentElement.style.setProperty('--game-screen-height', gameScreenHeight + 'px');
 }
 
 async function handleStartClick() {
@@ -189,10 +188,8 @@ async function handleAClick(e) {
 
 async function defeatAttacker() {
   document.getElementById('kirby').classList.add('drawing');
-  changeFrame('kirby', 'drawing');
   document.getElementById('attacker').classList.add('defeated');
   document.getElementById('attacker-hat').classList.add('defeated');
-  changeFrame(attackers[player.level].name, 'dead')
   roundStatus.won = true;
   let reactionTime = Date.now() - roundStatus.startedAt;
   document.getElementById('time-display').innerText = reactionTime + 'ms';
@@ -210,7 +207,6 @@ async function defeatAttacker() {
   await spinGun(randomInt(500, 2000));
   await pause(1200);
   changeBonusMessage();
-
   await endRound();
   initiateRound(0);
 }
@@ -249,9 +245,9 @@ function changeFrame(playerID, newFrame) {
   let frameIndex = spriteSheetData[playerID].frames.indexOf(newFrame);
   let scaledBuffer = game.spriteBuffer * frameIndex;
   let newBGPosition = ((baseSize.width * frameIndex * -1) - scaledBuffer);
-  newBGPosition *= pixelSize;;
+  console.log('BG x for', playerID, newBGPosition);
   newBGPosition *= game.scaleAmount;
-  element.style.backgroundPosition = `${newBGPosition}px 0`;
+  element.style.backgroundPositionX = `${newBGPosition}px`;
 }
 
 function changeGameMessage(newMessage) {
@@ -303,14 +299,6 @@ function loadAttacker(attacker) {
   console.log('loading', attacker.name);
   let attackerElement = document.getElementById('attacker');
   attackerElement.style.backgroundImage = `url("media/images/${attacker.name}.png")`;
-  let actualSize = {
-    width: spriteSheetData[attacker.name].baseSize.width * pixelSize * game.scaleAmount,
-    height: spriteSheetData[attacker.name].baseSize.width * pixelSize * game.scaleAmount,
-  };
-  console.log('width to', actualSize.width + 'px')
-  console.log('height to', actualSize.height + 'px')
-  attackerElement.style.width = actualSize.width + 'px';
-  attackerElement.style.height = actualSize.height + 'px';
 }
 
 async function callToFire() {
@@ -322,7 +310,7 @@ async function callToFire() {
     changeGameMessage();
     document.getElementById('a-button').classList.add('dimmed');
   }, attackDelay);
-  changeFrame(attackers[player.level].name, 'drawing')
+  // changeFrame(attackers[player.level].name, 'drawing')
   roundStatus.drawStarted = true;
   document.getElementById('attacker').classList.add('telegraphing');
   await pause(attackDelay);
@@ -330,9 +318,8 @@ async function callToFire() {
     roundStatus.attackerFired = true;
     document.getElementById('attacker').classList.remove('telegraphing');
     document.getElementById('attacker').classList.add('drawing');
-    // document.querySelector('#attacker > .gun').classList.add('drawn');
+    // return true;
     document.getElementById('kirby').classList.add('defeated');
-    document.querySelector('#kirby + .hat').classList.add('defeated');
     await animateFrameSequence('kirby', 'dead', [
       { frame: 1, duration: 225 },
       { frame: 2, duration: 225 },
@@ -340,6 +327,7 @@ async function callToFire() {
       { frame: 4, duration: 225 },
       { frame: 3, duration: 150 },
     ]);
+    return true;
     await pause(750);
     await endRound();
     initiateRound(0);
@@ -349,7 +337,7 @@ async function callToFire() {
 async function animateFrameSequence(elementID, prefix, sequence) {
   console.log('type:', typeof sequence)
   if (typeof sequence == 'number') {
-    for (let i = 1; i <= sequence; i++) {
+    for (let i in sequence) {
       changeFrame('kirby', `${prefix}${i}`);
       console.log('changing to', `${prefix}${i}`)
       await pause(200);
@@ -366,15 +354,11 @@ async function animateFrameSequence(elementID, prefix, sequence) {
 
 async function spinGun(duration) {
   document.getElementById('kirby').classList.add('spinning');
-  // document.querySelector('#kirby > .gun').classList.add('spinning');
   document.querySelector('#kirby > .gun').style.animationDuration = duration + 'ms';
   await pause(duration);
   document.getElementById('kirby').classList.remove('spinning');
   document.getElementById('kirby').classList.remove('drawing');
-  // document.querySelector('#kirby > .gun').classList.remove('spinning');
-  // document.querySelector('#kirby > .gun').classList.remove('drawn');
   changeFrame('kirby', 'waiting');
-  // changeBG('#kirby + .hat', 'media/images/kirbyhat.png');
   document.getElementById('kirby').classList.add('holstering');
   setTimeout(() => {
     document.getElementById('kirby').classList.remove('holstering');
@@ -410,3 +394,29 @@ function preloadImages() {
 const pause = async (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const randomInt = (min, max) => Math.floor(Math.random() * (max - min + 1) + min);
+
+
+class Fighter {
+  constructor(name, frames, attachments, imagePath) {
+    this.name = name;
+    this.baseSize = { width: 16, height: 16 },
+    this.frames = [
+      'waiting',
+      'drawing',
+      'blinking',
+      'dead1',
+      'dead2',
+      'dead3',
+      'dead4',
+    ],
+    this.attachments = {
+      hat: {
+        frames: ['hat', 'hat2']
+      },
+      gun: {
+        frames: ['gun', 'spinninggun'],
+      }
+    }
+    this.imagePath = imagePath;
+  }
+}

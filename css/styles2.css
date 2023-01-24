@@ -1,10 +1,14 @@
 :root {
+  --pixels-per-width: 170;
+  --pixels-per-height: 150;
   --actual-height: 100vh;
   --header-height: 3rem;
+  --sprite-scale: 3;
+  --base-sprite-size: 16;
   --nes-pixel-size: 1px;
-  --scaled-pixel-size: 1px;
-  --game-screen-height: 300px;
-  --sprite-height: calc(var(--scaled-pixel-size) * 16);
+  --scaled-pixel-size: calc(100vw / var(--pixels-per-width));
+  --sprite-height: calc(1px * var(--base-sprite-size));
+  --game-screen-height: calc(var(--scaled-pixel-size) * var(--pixels-per-height));
 
 }
 
@@ -13,9 +17,9 @@ body {
   background-color: #222;
   color: #ccc;
   box-sizing: border-box;
-  font-family: Verdana, Tahoma, sans-serif;
   opacity: 0;
   transition: opacity 500ms ease;
+  
 }
 
 * {
@@ -23,6 +27,7 @@ body {
 }
 
 header {
+  font-family: Verdana, Tahoma, sans-serif;
   width: 100vw;
   height: var(--header-height);
   display: flex;
@@ -79,7 +84,7 @@ body.hide-intro #battle-area {
 }
 
 #score-display {
-  height: calc(var(--nes-pixel-size) * 16);
+  height: calc(var(--scaled-pixel-size) * 16);
   display: flex;
   /* flex-direction: row-reverse; */
   justify-content: flex-end;
@@ -88,7 +93,7 @@ body.hide-intro #battle-area {
 
 .score-number {
   height: 100%;
-  width: calc(var(--nes-pixel-size) * 8);
+  width: calc(var(--scaled-pixel-size) * 8);
   background-repeat: no-repeat;
   background-size: cover;
   background-position: 0 0;
@@ -239,7 +244,6 @@ body.playing #a-button {
   background-size: cover;
   background-repeat: no-repeat;
   background-position-x: right;
-  /* display: none; */
   transition: background-position-x 1s ease-in-out, opacity 500ms ease-in-out;
 }
 
@@ -259,7 +263,7 @@ body.playing #a-button {
 }
 
 body.playing #battle-area {
-  background-position-x: calc(var(--nes-pixel-size) * -205);
+  background-position-x: calc(var(--scaled-pixel-size) * -220);
 }
 
 .sprite {
@@ -268,22 +272,27 @@ body.playing #battle-area {
   background-size: cover;
   width: var(--sprite-height);
   height: var(--sprite-height);
-  transform-origin: center;
+  scale: var(--sprite-scale);
 }
 
 #kirby, #attacker {
-  bottom: calc(var(--nes-pixel-size) * 40);
+  bottom: calc(var(--scaled-pixel-size) * 46);
   opacity: 0;
-  transition: opacity 300ms ease-in-out;
+  /* transition: opacity 300ms ease-in-out; */
 }
 
 #kirby {
-  left: calc(var(--nes-pixel-size) * 65);
+  left: calc(var(--scaled-pixel-size) * 64);
   background-image: url("../media/images/kirby.png");
 }
 
+#kirby.drawing {
+  background-position-x: calc(var(--nes-pixel-size) * -18);
+}
+
 #attacker {
-  right: calc(var(--nes-pixel-size) * 29);
+  /* right: calc(var(--scaled-pixel-size) * 26); */
+  left: calc(var(--scaled-pixel-size) * 136);
   background-image: url("../media/images/waddledee.png");
 }
 
@@ -291,25 +300,26 @@ body.playing #battle-area {
   content: "";
   position: absolute;
   background: inherit;
-  width: calc(var(--nes-pixel-size) * 24);
-  height: calc(var(--nes-pixel-size) * 24);
+  background-size: cover;
+  width: inherit;
+  height: inherit;
   display: none;
 }
 
 #kirby > .gun, #attacker > .gun {
-  top: calc(var(--nes-pixel-size) * -1.5);
+  top: calc(var(--nes-pixel-size) * -1);
 }
 
 #kirby > .gun {
   background-image: url("../media/images/kirby.png");
-  background-position: calc(var(--nes-pixel-size) * -243);
-  right: calc(var(--nes-pixel-size) * -12);
+  background-position: calc(var(--nes-pixel-size) * -162);
+  right: calc(var(--nes-pixel-size) * -8);
 }
 
 #attacker > .gun {
   background-image: url("../media/images/waddledee.png");
   background-position: 100%;
-  right: calc(var(--nes-pixel-size) * 12);
+  right: calc(var(--nes-pixel-size) * 8);
 }
 
 .sprite.drawing > .gun {
@@ -317,15 +327,26 @@ body.playing #battle-area {
 }
 
 #kirby.drawing + .hat {
-  background-position: calc(var(--nes-pixel-size) * -217.5);
+  background-position-x: calc(var(--nes-pixel-size) * -144);
+  background-position-y: calc(var(--nes-pixel-size) * -2);
+  bottom: calc(var(--scaled-pixel-size) * 48);
+}
+
+#attacker.drawing {
+  background-position-x: calc(var(--nes-pixel-size) * -18);
+}
+
+#attacker.drawing + .hat {
+  left: calc(var(--scaled-pixel-size) * 136);
+  bottom: calc(var(--scaled-pixel-size) * 47);
 }
 
 #kirby.spinning > .gun {
   display: block;
-  background-position: calc(var(--nes-pixel-size) * -270);
+  background-position: calc(var(--scaled-pixel-size) * -180);
   top: unset;
-  bottom: calc(var(--nes-pixel-size) * 16);
-  left: calc(var(--nes-pixel-size) * 24);
+  bottom: calc(var(--nes-pixel-size) * 8);
+  left: calc(var(--nes-pixel-size) * 16);
   transform-origin: bottom left;
   animation: spin forwards 1500ms linear;
 }
@@ -344,8 +365,9 @@ body.playing #battle-area {
 }
 
 #attacker.defeated {
+  background-position-x: calc(var(--nes-pixel-size) * -36) !important;
   animation-name: attacker-die;
-  animation-duration: 500ms;
+  animation-duration: 600ms;
 }
 
 #kirby.defeated {
@@ -354,13 +376,15 @@ body.playing #battle-area {
 }
 
 .hat {
-  transform-origin: center;
   opacity: 0;
-  transition: opacity 300ms ease-in-out;
+  /* transition: opacity 300ms ease-in-out; */
+  transform-origin: center calc(var(--nes-pixel-size) * 12);
+  background-position-y: calc(var(--nes-pixel-size) * -3);
+  bottom: calc(var(--scaled-pixel-size) * 48);
 }
 
 #kirby.defeated + .hat, #attacker.defeated + .hat {
-  animation-duration: 1000ms;
+  animation-duration: 800ms;
   animation-iteration-count: 1;
   animation-fill-mode: forwards;
   animation-timing-function: cubic-bezier(0.445, 0.55, 0.75, 0.95);
@@ -368,21 +392,23 @@ body.playing #battle-area {
 
 #kirby + .hat {
   background-image: url("../media/images/kirby.png");
-  background-position: calc(var(--nes-pixel-size) * -189);
-  bottom: calc(var(--nes-pixel-size) * 50);
-  left: calc(var(--nes-pixel-size) * 65);
+  background-position-x: calc(var(--nes-pixel-size) * -126);
+  left: calc(var(--scaled-pixel-size) * 64);
 }
 
 #attacker + .hat {
   background-image: url("../media/images/waddledee.png");
-  background-position: calc(var(--nes-pixel-size) * -81);
-  bottom: calc(var(--nes-pixel-size) * 50.5);
-  right: calc(var(--nes-pixel-size) * 29);
+  background-position-x: calc(var(--nes-pixel-size) * -54);
+  background-position-y: calc(var(--nes-pixel-size) * -4);
+  left: calc(var(--scaled-pixel-size) * 136);
+  bottom: calc(var(--scaled-pixel-size) * 47);
+
   /* width: calc(var(--sprite-height)); */
   /* opacity: 0 !important; */
 }
 
 #attacker.defeated + .hat {
+  transform-origin: center;
   animation-name: hat-flip;
 }
 
@@ -432,23 +458,23 @@ body.playing #battle-area {
 
   }
   25% {
-    transform: rotate(15deg);
-    translate: 25%;
+    transform: rotate(45deg);
+    translate: calc(var(--scaled-pixel-size) * 6);
     margin-bottom: 8%
   }
   50% {
-    transform: rotate(30deg);
-    translate: 50%;
+    transform: rotate(90deg);
+    translate: calc(var(--scaled-pixel-size) * 12);
     margin-bottom: 16%
   }
   75% {
-    transform: rotate(45deg);
-    translate: 75%;
+    transform: rotate(135deg);
+    translate: calc(var(--scaled-pixel-size) * 18);
     margin-bottom: 8%
   }
   100% {
-    transform: rotate(90deg);
-    translate: 100%;
+    transform: rotate(260deg);
+    translate: calc(var(--scaled-pixel-size) * 24);
     margin-bottom: 0%
   }
 }
@@ -462,22 +488,22 @@ body.playing #battle-area {
   }
   25% {
     transform: rotate(-20deg);
-    translate: -25%;
+    translate: calc(var(--scaled-pixel-size) * -8);
     margin-bottom: 10%
   }
   50% {
     transform: rotate(-60deg);
-    translate: -50%;
+    translate: calc(var(--scaled-pixel-size) * -16);
     margin-bottom: 12%
   }
   75% {
     transform: rotate(-100deg);
-    translate: -75%;
+    translate: calc(var(--scaled-pixel-size) * -24);
     margin-bottom: 8%
   }
   100% {
     transform: rotate(-180deg);
-    translate: -100%;
+    translate: calc(var(--scaled-pixel-size) * -32);
     margin-bottom: 0%
   }
 }
@@ -489,11 +515,11 @@ body.playing #battle-area {
   }
   50% {
     transform: rotate(720deg);
-    translate: 0 -500%;
+    translate: 0 calc(var(--scaled-pixel-size) * -96);
   }
   100% {
     transform: rotate(1440deg);
-    translate: 0 75%;
+    translate: 0 calc(var(--scaled-pixel-size) * 12);
   }
 }
 
@@ -504,11 +530,11 @@ body.playing #battle-area {
   }
   50% {
     transform: rotate(540deg);
-    translate: 0 -250%;
+    translate: 0 calc(var(--scaled-pixel-size) * -86);
   }
   100% {
     transform: rotate(1080deg);
-    translate: 0 75%;
+    translate: 0 calc(var(--scaled-pixel-size) * 16);
   }
 }
 
